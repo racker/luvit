@@ -22,11 +22,12 @@
 #include "utils.h"
 
 int luv_new_pipe (lua_State* L) {
+  uv_pipe_t* handle;
   int before = lua_gettop(L);
   int ipc = luaL_checkint(L, 1);
   luv_ref_t* ref;
 
-  uv_pipe_t* handle = (uv_pipe_t*)lua_newuserdata(L, sizeof(uv_pipe_t));
+  handle = (uv_pipe_t*)lua_newuserdata(L, sizeof(uv_pipe_t));
   uv_pipe_init(luv_get_loop(L), handle, ipc);
 
   // Set metatable for type
