@@ -30,6 +30,8 @@ void luv_process_on_exit(uv_process_t* handle, int exit_status, int term_signal)
   int before = lua_gettop(L);
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref->r);
 
+  uv_close((uv_handle_t*)handle, NULL);
+
   lua_pushinteger(L, exit_status);
   lua_pushinteger(L, term_signal);
   luv_emit_event(L, "exit", 2);

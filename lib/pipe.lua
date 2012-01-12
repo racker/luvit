@@ -27,7 +27,7 @@ PIPE.prototype = pipe_prototype
 
 function PIPE.new(ipc)
   local pipe = {
-    userdata = UV.new_pipe(ipc and 1 or 0),
+    userdata = UV.new_pipe(ipc),
     prototype = pipe_prototype
   }
   setmetatable(pipe, user_meta)

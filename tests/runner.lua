@@ -78,6 +78,9 @@ Fs.readdir('.', function(err, files)
       end
     end
     process.stdout:write('Done\n')
+	process.stdout:close()
+	process.stdin:close()
+	process.stderr:close()
   end)
 end)
 

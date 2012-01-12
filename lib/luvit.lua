@@ -106,9 +106,12 @@ end
 -- But don't hold the event loop open for them
 process.stdin = TTY.new(0)
 process.stdout = TTY.new(1)
+process.stderr = TTY.new(2)
 local stdout = process.stdout
-UV.unref()
-UV.unref()
+if luvit_os ~= 'win' then
+  UV.unref()
+  UV.unref()
+end
 
 
 -- Replace print
