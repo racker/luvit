@@ -40,6 +40,7 @@ local table = require('table')
 local utils = require('utils')
 local fs = require('fs')
 local Tty = require('tty').Tty
+local Pipe = require('pipe').Pipe
 local Emitter = require('core').Emitter
 local constants = require('constants')
 local path = require('path')
@@ -118,14 +119,45 @@ if luvit_os ~= "win" then
   uv.unref()
 end
 
+local createWriteableStdioStream = function(fd)
+  local fd_type = uv.handleType(fd);
+  if (fd_type == "TTY") then
+    return Tty:new(fd)
+  elseif (fd_type == "FILE") then
+    return fs.SyncWriteStream:new(fd)
+  elseif (fd_type == "NAMED_PIPE") then
+    local pipe = Pipe:new(0)
+    pipe:open(fd)
+    return pipe
+  else
+    error("Unknown stream file type " .. fd)
+  end
+end
+
+local createReadableStdioStream = function(fd)
+  local fd_type = uv.handleType(fd);
+  if (fd_type == "TTY") then
+    return Tty:new(fd)
+  elseif (fd_type == "FILE") then
+    return fs.createReadStream(nil, {fd = fd})
+  elseif (fd_type == "NAMED_PIPE") then
+    local pipe = Pipe:new(0)
+    pipe:open(fd)
+    return pipe
+  else
+    error("Unknown stream file type " .. fd)
+  end
+end
+
 -- Load the tty as a pair of pipes
 -- But don't hold the event loop open for them
-process.stdin = Tty:new(0)
-process.stdout = Tty:new(1)
+process.stdin = createReadableStdioStream(0)
+process.stdout = createWriteableStdioStream(1)
+process.stderr = createWriteableStdioStream(2)
+uv.unref()
+uv.unref()
+uv.unref()
 local stdout = process.stdout
-uv.unref()
-uv.unref()
-
 
 -- Replace print
 function print(...)
