@@ -23,9 +23,9 @@ local path = {}
 -- 'root' is just a slash, or nothing.
 local function splitPath(filename)
   local root, dir, basename
-  local i, j = filename:find("[^/]*$")
-  if filename:sub(1, 1) == "/" then
-    root = "/"
+  local i, j = filename:find("[^\\]*$")
+  if filename:sub(1, 1) == "\\" then
+    root = "\\"
     dir = filename:sub(2, i - 1)
   else
     root = ""
@@ -53,44 +53,47 @@ local function normalizeArray(parts)
 end
 
 function path.normalize(filepath)
-  local is_absolute = filepath:sub(1, 1) == "/"
-  local trailing_slash = filepath:sub(#filepath) == "/"
+  local is_absolute = filepath:sub(1, 2) == "c:"
+  local trailing_slash = filepath:sub(#filepath) == "\\"
+  print('normalize: ' .. filepath)
 
   local parts = {}
-  for part in filepath:gmatch("[^/]+") do
+  for part in filepath:gmatch("[^\\]+") do
     parts[#parts + 1] = part
   end
+  print(parts)
   normalizeArray(parts)
-  filepath = table.concat(parts, "/")
+  filepath = table.concat(parts, "\\")
+  print(filepath)
 
   if #filepath == 0 then
     if is_absolute then
-      return "/"
+      return "\\"
     end
     return "."
   end
   if trailing_slash then
-    filepath = filepath .. "/"
+    filepath = filepath .. "\\"
   end
   if is_absolute then
-    filepath = "/" .. filepath
+    filepath = filepath
   end
   return filepath
 end
 
 function path.join(...)
-  return path.normalize(table.concat({...}, "/"))
+  return path.normalize(table.concat({...}, "\\"))
 end
 
 function path.resolve(root, filepath)
-  if filepath:sub(1, 1) == "/" then
+  if filepath:sub(1, 2) == "c:" then
     return path.normalize(filepath)
   end
   return path.join(root, filepath)
 end
 
 function path.dirname(filepath)
-  if filepath:sub(filepath:len()) == "/" then
+  if filepath:sub(filepath:len()) == "\\" then
     filepath = filepath:sub(1, -2)
   end
 
@@ -108,7 +111,7 @@ function path.dirname(filepath)
 end
 
 function path.basename(filepath, expected_ext)
-  return filepath:match("[^/]+$") or ""
+  return filepath:match("[^\\]+$") or ""
 end
 
 function path.extname(filepath)

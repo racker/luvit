@@ -45,6 +45,7 @@ local Emitter = require('core').Emitter
 local constants = require('constants')
 local path = require('path')
 
+
 -- Copy date and binding over from lua os module into luvit os module
 local OLD_OS = require('os')
 local OS_BINDING = require('os_binding')
@@ -174,6 +175,8 @@ function print(...)
   stdout:write(table.concat(arguments, "\t") .. "\n")
 end
 
+print('include stuff')
+
 -- A nice global data dumper
 function p(...)
   local n = select('#', ...)
@@ -250,23 +253,34 @@ local function partialRealpath(filepath)
 end
 
 local function myloadfile(filepath)
+  print(filepath)
+  print('fs.exists: ' fs.existsSync(filepath))
   if not fs.existsSync(filepath) then return end
+  p(fs)
+  p(fs.existsSync)
 
   filepath = partialRealpath(filepath)
+  print('myloadfile')
 
   if package.loaded[filepath] then
     return function ()
       return package.loaded[filepath]
     end
   end
+  print('myloadfile')
 
   local code = fs.readFileSync(filepath)
+  print('myloadfile')
 
   -- TODO: find out why inlining assert here breaks the require test
   local fn, err = loadstring(code, '@' .. filepath)
+  print('myloadfile')
   assert(fn, err)
+  print('myloadfile')
   local dirname = path.dirname(filepath)
+  print('myloadfile')
   local realRequire = require
+  print('myloadfile')
   setfenv(fn, setmetatable({
     __filename = filepath,
     __dirname = dirname,
@@ -274,6 +288,7 @@ local function myloadfile(filepath)
       return realRequire(filepath, dirname)
     end,
   }, global_meta))
+  print('myloadfile')
   local module = fn()
   package.loaded[filepath] = module
   return function() return module end
@@ -333,23 +348,34 @@ local function loadModule(filepath, verbose)
   return "\n\tCannot find module " .. filepath
 end
 
+print('cwd loader stuff')
+
 -- Remove the cwd based loaders, we don't want them
 local builtinLoader = package.loaders[1]
+print('fug up')
 package.loaders = nil
+print('fug up')
 package.path = nil
+print('fug up')
 package.cpath = nil
+print('fug up')
 package.searchpath = nil
+print('fug up')
 package.seeall = nil
+print('fug up')
 package.config = nil
+print('fug up')
 _G.module = nil
-local libpath = uv.execpath():match('^(.*)/[^/]+/[^/]+$') .. '/lib/luvit/'
+print('fug up')
+local libpath = uv.execpath():match('^(.*)\\[^\\]+\\[^\\]+$') .. '\\lib\\luvit\\'
+print(libpath)
 function require(filepath, dirname)
   if not dirname then dirname = base_path end
 
   -- Absolute and relative required modules
   local first = filepath:sub(1, 1)
   local absolute_path
-  if first == "/" then
+  if first == "c" then
     absolute_path = path.normalize(filepath)
   elseif first == "." then
     absolute_path = path.join(dirname, filepath)
@@ -389,11 +415,11 @@ function require(filepath, dirname)
   end
 
   -- Bundled path modules
-  local dir = dirname .. "/"
+  local dir = dirname .. "\\"
   repeat
-    dir = dir:sub(1, dir:find("/[^/]*$") - 1)
-    local full_path = dir .. "/modules/" .. filepath
-    local loader = loadModule(dir .. "/modules/" .. filepath)
+    dir = dir:sub(1, dir:find("\\[^\\]*$") - 1)
+    local full_path = dir .. "\\modules\\" .. filepath
+    local loader = loadModule(dir .. "\\modules\\" .. filepath)
     if type(loader) == "function" then
       return loader()
     else
@@ -406,6 +432,7 @@ function require(filepath, dirname)
 end
 
 local repl = require('repl')
+p(repl)
 
 local function usage()
   print("Usage: " .. process.argv[0] .. " [options] script.lua [arguments]")
@@ -432,7 +459,6 @@ assert(xpcall(function ()
   local state = "BEGIN"
   local to_eval = {}
   local args = {[0]=process.argv[0]}
-
 
   for i, value in ipairs(process.argv) do
     if state == "BEGIN" then
@@ -473,16 +499,29 @@ assert(xpcall(function ()
   for i, value in ipairs(to_eval) do
     repl.evaluateLine(value)
   end
+  print('file or repl')
 
   if file then
-    assert(myloadfile(path.resolve(base_path, file)))()
+    print('base_path: ' .. base_path)
+    print('file: ' .. file)
+    local tmp = path.resolve(base_path, file)
+    print('tmp: ' .. tmp)
+    local fun = myloadfile(tmp)
+    print('fun: ' ..fun)
+    assert(fun())
+    print('wee')
   elseif not (uv.handleType(0) == "TTY") then
+    print('repl time')
     process.stdin:on("data", function(line)
       repl.evaluateLine(line)
     end)
+    print('wee')
     process.stdin:readStart()
+    print('wee')
     uv.run()
+    print('wee')
     process.exit(0)
+    print('wee')
   end
 
   if interactive or showrepl then

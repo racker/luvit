@@ -93,10 +93,12 @@ for name, arity in pairs(sizes) do
 end
 
 function fs.exists(path, callback)
+  print(path)
   uv.fsStat(path, function (err)
     if not err then
       return callback(nil, true)
     end
+    p(err)
     if err.code == "ENOENT" or err.code == "ENOTDIR" then
       return callback(nil, false)
     end

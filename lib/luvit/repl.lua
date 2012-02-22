@@ -78,9 +78,9 @@ end
 repl.colored_name = c("Bred") .. "L" .. c("Bgreen") .. "uv" .. c("Bblue") .. "it" .. c()
 
 function repl.start()
-  --_oldprint("repl.start")
+  print("repl.start")
   local function displayPrompt(prompt)
-    --_oldprint("display_prompt " .. prompt)
+    print("display_prompt " .. prompt)
     process.stdout:write(prompt .. ' ', noop)
   end
 
@@ -91,11 +91,13 @@ function repl.start()
 
 
   process.stdin:on('data', function (line)
+    print("repl got data")
     local prompt = repl.evaluateLine(line)
     displayPrompt(prompt)
   end)
 
   process.stdin:on('end', function ()
+    print("exit")
     process.exit()
   end)
 

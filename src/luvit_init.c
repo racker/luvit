@@ -152,9 +152,11 @@ int luvit_init(lua_State *L, uv_loop_t* loop, int argc, char *argv[])
 }
 
 int luvit_run(lua_State *L) {
-  return luaL_dostring(L, "\
-    local path = require('uv').execpath():match('^(.*)/[^/]+/[^/]+$') .. '/lib/luvit/?.lua'\
-    package.path = path .. ';' .. package.path\
-    assert(require('luvit'))");
+  return luaL_dostring(L, 
+    "package.path = 'c:\\\\Users\\\\Philips\\\\luvit\\\\lib\\\\luvit\\\\?.lua'\n"
+    "print(package.path)\n"
+    "assert(require('luvit'))\n");
+  return luaL_dostring(L, "print('')");
+
 }
 
