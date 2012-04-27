@@ -4,11 +4,13 @@ local tls = require('tls')
 
 local options = {
   cert = fixture.certPem,
-  key = fixture.certKey,
-  port = fixture.commonPort,
-  host = '127.0.0.1',
-  rejectUnauthorized = true,
+  key = fixture.keyPem
 }
+local client_options = {
+  port = fixture.commonPort,
+  host = '127.0.0.1'
+}
+p(options)
 
 local connectCount = 0
 
@@ -22,13 +24,17 @@ server = tls.createServer(options, function(socket)
 end)
 
 server:on('clientError', function(err)
+  print('got client error!')
+  p(err)
   assert(false)
 end)
 
 local unauthorized = function()
-  local socket = tls.connect(options, function()
-    assert(socket.authorized == nil)
-    socket:finish()
+  local socket
+  socket = tls.connect(client_options, function()
+    assert(socket.authorized == false)
+    socket:destroy()
+    print('unauthorized() finished, now rejectUnauthorized()')
     rejectUnauthorized()
   end)
 
@@ -41,12 +47,14 @@ local unauthorized = function()
 end
 
 local rejectUnauthorized = function()
-  local socket = tls.connect(options, function()
+  local socket
+  socket = tls.connect(client_options, function()
     assert(false)
   end)
 
   socket:on('error', function(err)
     print(err)
+    print('rejectUnauthorized() finished, now authorized()')
     authorized()
   end)
 
@@ -54,12 +62,14 @@ local rejectUnauthorized = function()
 end
 
 local authorized = function()
-  local socket = tls.connect(fixture.commonPort, {
+  local socket
+  socket = tls.connect(fixture.commonPort, {
     rejectUnauthorized = true,
     ca = fixture.loadPEM('ca1-cert')
   }, function()
     assert(socket.authorized)
     socket:finish()
+    print('authorized() finished, now closing')
     server:close()
   end)
   socket:on('error', function(err)

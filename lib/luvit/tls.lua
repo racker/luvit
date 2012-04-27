@@ -493,6 +493,8 @@ function SecurePair:initialize(credentials, isServer, requestCert, rejectUnautho
     certOrServerName = options.servername
   end
 
+  p(certOrServerName)
+
   self.ssl = tlsbinding.connection(self.credentials.context,
     self._isServer == true,
     certOrServerName,

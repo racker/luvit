@@ -41,6 +41,8 @@ function Socket:_connect(address, port, addressType)
 
   local connectionReq = nil
   if addressType == 4 then
+    print(address)
+    print(port)
     connectionReq = self._handle:connect(address, port)
   elseif addressType == 6 then
     connectionReq = self._handle:connect6(address, port)
