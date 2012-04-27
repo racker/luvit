@@ -29,26 +29,31 @@ server:on('clientError', function(err)
   assert(false)
 end)
 
-local unauthorized = function()
+local authorized = function()
   local socket
-  socket = tls.connect(client_options, function()
-    assert(socket.authorized == false)
-    socket:destroy()
-    print('unauthorized() finished, now rejectUnauthorized()')
-    rejectUnauthorized()
+  socket = tls.connect(fixture.commonPort, {
+    host = '127.0.0.1',
+    rejectUnauthorized = true,
+    ca = fixture.loadPEM('ca1-cert'),
+  }, function()
+    assert(socket.authorized)
+    socket:finish()
+    print('authorized() finished, now closing')
+    server:close()
   end)
-
   socket:on('error', function(err)
     print(err)
     assert(false)
   end)
-
   socket:write('ok')
 end
 
 local rejectUnauthorized = function()
   local socket
-  socket = tls.connect(client_options, function()
+  socket = tls.connect(fixture.commonPort, {
+    rejectUnauthorized = true,
+    host = '127.0.0.1'
+  }, function()
     assert(false)
   end)
 
@@ -61,21 +66,20 @@ local rejectUnauthorized = function()
   socket:write('ng')
 end
 
-local authorized = function()
+local unauthorized = function()
   local socket
-  socket = tls.connect(fixture.commonPort, {
-    rejectUnauthorized = true,
-    ca = fixture.loadPEM('ca1-cert')
-  }, function()
-    assert(socket.authorized)
-    socket:finish()
-    print('authorized() finished, now closing')
-    server:close()
+  socket = tls.connect(fixture.commonPort, { host = '127.0.0.1' }, function()
+    assert(socket.authorized == false)
+    socket:destroy()
+    print('unauthorized() finished, now rejectUnauthorized()')
+    rejectUnauthorized()
   end)
+
   socket:on('error', function(err)
     print(err)
     assert(false)
   end)
+
   socket:write('ok')
 end
 

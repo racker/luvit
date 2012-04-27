@@ -490,10 +490,11 @@ function SecurePair:initialize(credentials, isServer, requestCert, rejectUnautho
   if self._isServer == true then
     certOrServerName = self._requestCert
   else
+    if not options.servername then
+      error('servername is a required parameter')
+    end
     certOrServerName = options.servername
   end
-
-  p(certOrServerName)
 
   self.ssl = tlsbinding.connection(self.credentials.context,
     self._isServer == true,
@@ -820,8 +821,12 @@ function connect(...)
 
   socket:connect(options.port, options.host)
 
+  local servername = options.servername or options.host
+  if not servername then
+    error('host is a required parameter')
+  end
   local pair = SecurePair:new(sslcontext, false, true, options.rejectUnauthorized == true, {
-    servername = options.servername or options.host,
+    servername = servername
   })
 
   if options.session then
