@@ -176,6 +176,11 @@ function Pipe:pause()
   self:readStop()
 end
 
+function Pipe:pauseNoRef()
+  native.unref()
+  self:readStopNoRef()
+end
+
 function Pipe:resume()
   native.ref()
   self:readStart()
@@ -313,7 +318,11 @@ uv.createReadableStdioStream = function(fd)
 
   -- unref the event loop so that we don't block unless the user
   -- wants stdin. This follows node's logic.
-  stdin:pauseNoRef()
+  if fd_type ~= "FILE" then
+    -- fs.createReadStream returns iStream which is pure lua and doesn't have
+    -- pauseNoRef method
+    stdin:pauseNoRef()
+  end
 
   return stdin
 end
@@ -322,9 +331,9 @@ function Process:initialize(command, args, options)
   self.stdin = Pipe:new(nil)
   self.stdin:open(0)
   self.stdout = Pipe:new(nil)
-  self.stdin:open(1)
+  self.stdout:open(1)
   self.stderr = Pipe:new(nil)
-  self.stdin:open(2)
+  self.stderr:open(2)
   args = args or {}
   options = options or {}
 
