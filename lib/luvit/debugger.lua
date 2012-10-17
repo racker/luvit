@@ -248,7 +248,7 @@ Debugger.switch = {
     local _,v
     
     if topic and help[topic]
-      v = help[topic] or string.format('no help topic found for %s', topic)
+      v = help[topic] or string.format('no help topic found for %s', topic) then
       io.write(v)
       return OPS.nop
     end
