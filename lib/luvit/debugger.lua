@@ -548,8 +548,7 @@ end
 
 return {
   ['install'] = function(io)
-    read = io.read,
-    write = io.write
+    io = io
     return function()
       file, line = unpack(getinfo(3))
       debugger = debugger or Debugger:new()
