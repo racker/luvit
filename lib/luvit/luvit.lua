@@ -72,6 +72,7 @@ process.stderr = uv.createWriteableStdioStream(2)
 
 -- clear some globals
 -- This will break lua code written for other lua runtimes
+_G.debugger = require('debugger')(io)
 _G.io = nil
 _G.os = nil
 _G.math = nil

@@ -87,6 +87,7 @@
        'lib/luvit/utils.lua',
        'lib/luvit/uv.lua',
        'lib/luvit/zlib.lua',
+       'lib/luvit/debugger.lua'
      ],
      'defines': [
        'LUVIT_OS="<(OS)"',
@@ -207,7 +208,8 @@
             'lib/luvit/url.lua',
             'lib/luvit/utils.lua',
             'lib/luvit/uv.lua',
-            'lib/luvit/zlib.lua'
+            'lib/luvit/zlib.lua',
+            'lib/luvit/debugger.lua'
           ]
         },
         {
