@@ -25,8 +25,7 @@ local string = require('string')
 local utils = require('utils')
 local Object = require('core').Object
 
-local write = nil
-local read = nil
+local io
 
 local debugger = nil
 
