@@ -77,8 +77,8 @@ function Socket:setTimeout(msecs, callback)
   end
 end
 
-function Socket:pipe(destination)
-  self._handle:pipe(destination)
+function Socket:pipe(destination, name)
+  iStream.pipe(self, destination, name)
 end
 
 function Socket:write(data, callback)
@@ -134,11 +134,10 @@ end
 
 function Socket:_initEmitters()
   self._handle:on('close', function()
+    p('handle closed', tostring(self), tostring(self._handle))
+    self._handle = nil
+    self:_destroy()
     self:emit('close')
-  end)
-
-  self._handle:on('closed', function()
-    self:emit('closed')
   end)
 
   self._handle:on('timeout', function()
@@ -231,13 +230,20 @@ function Socket:connect(...)
   return self
 end
 
-function Socket:destroy(exception)
+function Socket:_destroy(exception)
   if self.destroyed == true then
     return
   end
   timer.unenroll(self)
   self.readable = false
   self.writable = false
+
+  self.destroyed = true
+end
+
+
+function Socket:destroy(exception)
+  p('socket destroy')
   if self._handle then
     self._handle:close()
     self._handle = nil
@@ -248,8 +254,7 @@ function Socket:destroy(exception)
     end
     self:emit('close')
   end)
-
-  self.destroyed = true
+  self:_destroy()
 end
 
 function Socket:initialize(handle)

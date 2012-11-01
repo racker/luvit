@@ -37,11 +37,15 @@ server:listen(fixture.commonPort, '127.0.0.1', function()
 
   local c
   c = tls.connect({port = fixture.commonPort, host = '127.0.0.1'})
+  c:on('close', function()
+    p('client is closed')
+  end)
   c:on('end', function()
     assert(c:address().address == c.socket:address().address)
     assert(c:address().port == c.socket:address().port)
     c:destroy()
     server:close()
   end)
+
 end)
 

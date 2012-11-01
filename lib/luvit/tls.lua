@@ -32,7 +32,7 @@ local string = require('string')
 local fmt = string.format
 
 local END_OF_FILE = 42
-local DEBUG = false
+local DEBUG = true
 
 local function dbg(format, ...)
   if DEBUG == true then
@@ -229,6 +229,7 @@ function CryptoStream:done(d)
   self.writable = false
 
   self.pair:cycle()
+  p(self)
 end
 
 function CryptoStream:getPeerCertificate()
@@ -243,6 +244,7 @@ end
 
 function CryptoStream:destroy()
   dbg('destroy')
+  p(self.pair._doneFlag)
   if self.pair._doneFlag == true then
     return
   end
@@ -295,7 +297,7 @@ function CryptoStream:_push()
     assert(#data >= 0)
 
     if #data == 0 then
-      if self:_internallyPendingBytes() == 0 then
+      if self:_internallyPendingBytes() == 0 and self._destroyAfterPush then
         self:_done()
       end
       return
@@ -316,6 +318,22 @@ function CryptoStream:_pull()
   while #self._pending > 0 do
     local tmp = table.remove(self._pending)
     local callback = table.remove(self._pendingCallbacks)
+
+    if #tmp == 0 then
+      this.pair.encrypted._destroyAfterPush = true
+
+      if (self == self.pair.encrypted) then
+        dbg('end encrypted ' + self.pair.fd)
+      else
+        assert(self == self.pair.cleartext)
+        debug('end cleartext')
+
+        this.pair.ssl:shutdown()
+
+        this.pair:cycle()
+        this:_done()
+      end
+    end
 
     if #tmp ~= 0 then
       local rv = self:_puller(tmp)
@@ -427,10 +445,6 @@ function CleartextStream:_pusher()
   return self.pair.ssl:clearOut()
 end
 
-function CleartextStream:shutdown(cb)
-  self:destroy()
-  if cb then cb() end
-end
 function CleartextStream:destroy()
   if self.socket and self._closing ~= true then
     self.socket:destroy()
@@ -585,6 +599,7 @@ end
 function SecurePair:destroy()
   dbg('SecurePair:destroy')
   if self._doneFlag == true then
+    p('skipping destroy')
     return
   end
 
@@ -628,8 +643,8 @@ end
 --[[ Private ]]--
 
 function pipe(pair, socket)
-  pair.encrypted:pipe(socket)
-  socket:pipe(pair.encrypted)
+  pair.encrypted:pipe(socket, 'pair.encrypted')
+  socket:pipe(pair.encrypted, 'socket')
 
   pair.fd = socket.fd
 
@@ -642,8 +657,9 @@ function pipe(pair, socket)
     cleartext:emit('error', e)
   end
 
-  function onend()
-    cleartext:emit('end')
+  function onclose()
+    socket:removeListener('error', onerror)
+    socket:removeListener('timeout', ontimeout)
   end
 
   function ontimeout()
@@ -651,7 +667,7 @@ function pipe(pair, socket)
   end
 
   socket:on('error', onerror)
-  socket:on('end', onend)
+  socket:on('close', onclose)
   socket:on('timeout', ontimeout)
 
   return cleartext
@@ -848,6 +864,7 @@ function connect(...)
     pair.ssl.setSession(options.session)
   end
 
+  p('piping client pair to socket ', tostring(pair), tostring(socket), tostring(socket._handle))
   local cleartext = pipe(pair, socket)
   if callback then
     cleartext:on('secureConnect', function()

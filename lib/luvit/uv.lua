@@ -22,7 +22,8 @@ local Handle = Emitter:extend()
 uv.Handle = Handle
 
 function Handle:initialize()
-  self:on('closed', function()
+  self:on('close', function()
+    p('handle close')
     self._closed = true
   end)
 end
@@ -30,6 +31,7 @@ end
 -- Wrapper around `uv_close`. Closes the underlying file descriptor of a handle.
 -- Handle:close()
 Handle.close = function(self)
+  p('handle closing', tostring(self))
   if self._closed then
     error("close called on closed handle")
     return

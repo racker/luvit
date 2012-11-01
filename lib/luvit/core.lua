@@ -264,7 +264,7 @@ contain a uv struct (it's pure lua)
 local iStream = Emitter:extend()
 core.iStream = iStream
 
-function iStream:pipe(target)
+function iStream:pipe(target, name)
   self:on('data', function (chunk)
     if target:write(chunk) == false and self.pause then
       self:pause()
@@ -278,12 +278,18 @@ function iStream:pipe(target)
   end)
 
   function onclose()
+    p('emitted close calling destroy ', name, tostring(self), tostring(target))
+    p(self)
+    p(target)
     if target.destroy then
       target:destroy()
     end
   end
 
   function onend()
+    p('emitted end calling done', name,  tostring(self),tostring(target))
+    p(self)
+    p(target)
     if target.done then
       target:done()
     end
