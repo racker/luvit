@@ -70,9 +70,9 @@ process.stdin = uv.createReadableStdioStream(0)
 process.stdout = uv.createWriteableStdioStream(1)
 process.stderr = uv.createWriteableStdioStream(2)
 
+_G.debugger = require('debugger').install(_G.io)
 -- clear some globals
 -- This will break lua code written for other lua runtimes
-_G.debugger = require('debugger').install(_G.io)
 _G.io = nil
 _G.os = nil
 _G.math = nil

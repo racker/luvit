@@ -14,7 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-This debugger was heavily inspired by Dave Nichols's debugger 
+This debugger was heavily inspired by Dave Nichols's debugger
 which itself was inspired by:
 RemDebug 1.0 Beta  (under Lua License)
 Copyright Kepler Project 2005 (http://www.keplerproject.org/remdebug)
@@ -30,8 +30,8 @@ local io
 local debugger = nil
 
 local help = {
-q = [[ 
-(q)  quit 
+q = [[
+(q)  quit
 
 ]],
 w = [[
@@ -39,7 +39,7 @@ w = [[
 
 ]],
 c = [[
-(c)  continue 
+(c)  continue
 
 ]],
 n = [[
@@ -71,8 +71,8 @@ db = [[
 
 ]],
 x = [[
-(x)  eval                             -- evals the statment via loadstring in the current strack frame 
-This function can't set local variables in the stack because loadstring returns a function.  Any input that 
+(x)  eval                             -- evals the statment via loadstring in the current strack frame
+This function can't set local variables in the stack because loadstring returns a function.  Any input that
 doesn't match an op defaults to eval.
 ]]
 }
@@ -82,7 +82,7 @@ local OPS = {['c']=0, ['q']=1, ['nop']=2}
 
 local function getinfo(lvl)
   local info = debug.getinfo(lvl)
-  if not info then 
+  if not info then
     return {nil, nil}
   end
   return {info.short_src, info.currentline}
@@ -120,7 +120,7 @@ local function getvalue(level, name)
     i = i + 1
   end
   if found then
-    return resolve_attrs() 
+    return resolve_attrs()
   end
 
   -- try upvalues
@@ -144,10 +144,10 @@ local function capture_vars(level)
   --useful for evaling user input in the given stack frame
   local ar = debug.getinfo(level, "f")
   if not ar then return {},'?',0 end
-  
+
   local vars = {__UPVALUES__={}, __LOCALS__={}}
   local i
-  
+
   local func = ar.func
   if func then
     i = 1
@@ -155,7 +155,7 @@ local function capture_vars(level)
       local name, value = debug.getupvalue(func, i)
       if not name then break end
       --ignoring internal control variables
-      if string.sub(name,1,1) ~= '(' then  
+      if string.sub(name,1,1) ~= '(' then
         vars[name] = value
         vars.__UPVALUES__[i] = name
       end
@@ -163,9 +163,9 @@ local function capture_vars(level)
     end
     vars.__ENVIRONMENT__ = getfenv(func)
   end
-  
+
   vars.__GLOBALS__ = getfenv(0)
-  
+
   i = 1
   while true do
     local name, value = debug.getlocal(level, i)
@@ -176,14 +176,14 @@ local function capture_vars(level)
     end
     i = i + 1
   end
-  
+
   vars.__VARSLEVEL__ = level
-  
+
   if func then
     --Do not do this until finished filling the vars table
     setmetatable(vars, { __index = getfenv(func), __newindex = getfenv(func) })
   end
-  
+
   --Do not read or write the vars table anymore else the metatable functions will get invoked!
 
   return vars
@@ -246,9 +246,9 @@ end
 Debugger.switch = {
   ['h'] = function(Debugger, file, line, topic)
     local _,v
-    
-    if topic and help[topic]
-      v = help[topic] or string.format('no help topic found for %s', topic) then
+
+    if topic and help[topic] then
+      v = help[topic] or string.format('no help topic found for %s', topic)
       io.write(v)
       return OPS.nop
     end
@@ -328,7 +328,7 @@ Debugger.switch = {
     if not func then
       eval = 'return ' .. eval
       ok, func = pcall(loadstring, eval)
-      if not (ok and func) then 
+      if not (ok and func) then
         return reply("Loadstring returns a function, try using the return statement.")
       end
     end
@@ -386,7 +386,7 @@ function Debugger:show(input, file, line)
         break
       end
     end
-    
+
     if not f then
       io.write('Cannot find '..file..'\n')
       return
@@ -416,15 +416,15 @@ function Debugger:has_breakpoint(file, line)
   -- print('looking for '.. file .. line)
   -- p(breaks)
   return self.breaks[file] and self.breaks[file][line]
-  -- if not breaks[file] then 
-  --   return false 
+  -- if not breaks[file] then
+  --   return false
   -- end
 
   -- local noext = string.gsub(file,"(%..-)$",'',1)
 
   -- if noext == file then noext = nil end
   -- while file do
-  --   if breaks[file][line] then 
+  --   if breaks[file][line] then
   --     return true end
   --   file = string.match(file,"[:/](.+)$")
   -- end
@@ -436,18 +436,18 @@ function Debugger:has_breakpoint(file, line)
 end
 
 function Debugger:should_break(file, line, event)
-  
+
   if event == "call" then
     self.stack = self.stack + 1
     return false
   end
-  
+
   if event == "return" then
     self.stack = self.stack - 1
     if self.step_out and self.target_lvl == self.stack then
       self.step_out = false
       return true
-    end 
+    end
     return false
   end
 
@@ -466,7 +466,7 @@ function Debugger:should_break(file, line, event)
     self.step_over = false
     return true
   end
-  
+
   return false
 
 end
@@ -502,7 +502,7 @@ function Debugger:process_input(file, line, input)
   local op = input:sub(0,1)
   local f = self.switch[op]
 
-  if not op then 
+  if not op then
     io.write('Give me something.')
     return OPS.nop
   end
@@ -514,7 +514,7 @@ function Debugger:process_input(file, line, input)
     f = nil
   end
   -- if the op doesn't exist, eval the expression and hope for the best
-  if not f then 
+  if not f then
     f = self.switch['x']
   end
 
@@ -532,8 +532,8 @@ function Debugger:hook(event, line)
 
   self.op = self:input(file, line, event)
 
-  while true do 
-    if self.op == OPS.q then 
+  while true do
+    if self.op == OPS.q then
       return debug.sethook()
     elseif self.op == OPS.c then
       return
