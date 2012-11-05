@@ -265,7 +265,6 @@ local iStream = Emitter:extend()
 core.iStream = iStream
 
 function iStream:pipe(target, name)
-  p('piping', tostring(target), tostring(name))
   self:on('data', function (chunk)
     if target:write(chunk) == false and self.pause then
       self:pause()
@@ -279,17 +278,13 @@ function iStream:pipe(target, name)
   end)
 
   local didOnEnd = false
-  local endedby
   function onend()
     if (didOnEnd) then
-      p("endedby", endedby)
       return
     end
+
     didOnEnd = true
-    endedby = 'end'
-    p('emitted end calling done', name,  tostring(self), tostring(target))
-    p(self)
-    p(target)
+
     if target.done then
       target:done()
     end
@@ -301,12 +296,9 @@ function iStream:pipe(target, name)
       p(target)
       return
     end
-    didOnEnd = true
-    endedby = 'close'
 
-    p('emitted close calling destroy ', name, tostring(self), tostring(target))
-    p(self)
-    p(target)
+    didOnEnd = true
+
     if target.destroy then
       target:destroy()
     end

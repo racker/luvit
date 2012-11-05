@@ -32,8 +32,6 @@ end
 -- Handle:close()
 local count = 1
 Handle.close = function(self)
-  p('handle closing', tostring(self))
-  p(self)
   if self._closed then
     error("close called on closed handle")
     return
