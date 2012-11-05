@@ -268,8 +268,6 @@ function Socket:destroy(exception)
 
   self.destroyed = true
 
-  p('socket destroy', tostring(self))
-  p(self:address())
   if self._handle then
     self._handle:close()
     self._handle = nil
