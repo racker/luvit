@@ -246,7 +246,6 @@ end
 
 function CryptoStream:destroy()
   dbg('destroy')
-  p(self.pair._doneFlag)
   if self.pair._doneFlag == true then
     return
   end
@@ -257,27 +256,13 @@ function CryptoStream:_done()
   dbg('_done')
   self._doneFlag = true
 
-  p(self)
-  p(self.pair.cleartext._doneFlag)
-  p(self.pair.encrypted._doneFlag)
   if self.pair.cleartext._doneFlag == true and
      self.pair.encrypted._doneFlag == true and
      self.pair._doneFlag == false then
-     p('we made it')
-     p('we made it')
-     p('we made it')
-     p('we made it')
-     p('we made it')
-     p('we made it')
-     p('we made it')
-     p('we made it')
-     p('we made it')
-     p('we made it')
-     p('we made it')
+
     if self.pair._secureEstablished == false then
       self.pair:err()
     else
-      p('destroying pair')
       self.pair:destroy()
     end
   end
@@ -338,13 +323,6 @@ function CryptoStream:_pull()
     local callback = table.remove(self._pendingCallbacks)
 
     if tmp == END_OF_FILE then
-      p('Got END OF FILE')
-      p('Got END OF FILE')
-      p('Got END OF FILE')
-      p('Got END OF FILE')
-      p('Got END OF FILE')
-      p('Got END OF FILE')
-
       if (self == self.pair.encrypted) then
         dbg('end encrypted ' .. tostring(self.pair.fd))
         self.pair.cleartext._destroyAfterPush = true
@@ -365,7 +343,6 @@ function CryptoStream:_pull()
       local rv = self:_puller(tmp)
 
       if self.pair.ssl and self.pair.ssl:getError() then
-        p('error function')
         self.pair:err()
         return
       end
@@ -571,7 +548,6 @@ end
 
 function SecurePair:cycle(depth)
   dbg('cycle')
-  p(self)
 
   if self._doneFlag == true then
     return
@@ -627,7 +603,6 @@ end
 function SecurePair:destroy()
   dbg('SecurePair:destroy')
   if self._doneFlag == true then
-    p('skipping destroy')
     return
   end
 
@@ -892,7 +867,6 @@ function connect(...)
     pair.ssl.setSession(options.session)
   end
 
-  p('piping client pair to socket ', tostring(pair), tostring(socket), tostring(socket._handle))
   local cleartext = pipe(pair, socket)
   if callback then
     cleartext:on('secureConnect', function()

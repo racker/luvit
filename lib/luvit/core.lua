@@ -292,8 +292,6 @@ function iStream:pipe(target, name)
 
   function onclose()
     if (didOnEnd) then
-      p("endedby", endedby)
-      p(target)
       return
     end
 

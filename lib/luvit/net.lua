@@ -134,10 +134,8 @@ end
 
 function Socket:_initEmitters()
   self._handle:once('close', function()
-    p('destroying socket based on close from handle')
     process.nextTick(function()
       self:destroy()
-      p('destroyed socket based on close from handle')
     end)
   end)
 
@@ -150,19 +148,6 @@ function Socket:_initEmitters()
   end)
 
   self._handle:once('end', function()
-    p('end', tostring(self))
-    p('end', tostring(self))
-    p('end', tostring(self))
-    p('end', tostring(self))
-    p('end', tostring(self))
-    p('end', tostring(self))
-    p('end', tostring(self))
-    p('end', tostring(self))
-    p('end', tostring(self))
-    p('end', tostring(self))
-    p('end', tostring(self))
-    p('end', tostring(self))
-    p('end', tostring(self))
     self:emit('end')
     self:done()
   end)
@@ -186,7 +171,6 @@ function Socket:done()
   self.writable = false
 
   local shutdownReq = self:shutdown(function()
-    p('shutdown complete')
     self:destroy()
   end)
   if shutdownReq ~= nil then
