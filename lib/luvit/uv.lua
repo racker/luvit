@@ -30,14 +30,22 @@ end
 
 -- Wrapper around `uv_close`. Closes the underlying file descriptor of a handle.
 -- Handle:close()
+local count = 1
 Handle.close = function(self)
   p('handle closing', tostring(self))
+  p(self)
   if self._closed then
     error("close called on closed handle")
     return
   end
+  if count == 6 then
+--    asdf()
+  end
+  count = count + 1
+
   native.close(self)
   self._closed = true
+  self:emit('close')
 end
 
 --[[

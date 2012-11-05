@@ -77,10 +77,6 @@ function Socket:setTimeout(msecs, callback)
   end
 end
 
-function Socket:pipe(destination, name)
-  iStream.pipe(self, destination, name)
-end
-
 function Socket:write(data, callback)
   if self.destroyed then
     return
@@ -133,11 +129,12 @@ function Socket:resume()
 end
 
 function Socket:_initEmitters()
-  self._handle:on('close', function()
-    p('handle closed', tostring(self), tostring(self._handle))
-    self._handle = nil
-    self:_destroy()
-    self:emit('close')
+  self._handle:once('close', function()
+    p('destroying socket based on close from handle')
+    process.nextTick(function()
+      self:destroy()
+      p('destroyed socket based on close from handle')
+    end)
   end)
 
   self._handle:on('timeout', function()
@@ -148,8 +145,22 @@ function Socket:_initEmitters()
     self:emit('connect')
   end)
 
-  self._handle:on('end', function()
+  self._handle:once('end', function()
+    p('end', tostring(self))
+    p('end', tostring(self))
+    p('end', tostring(self))
+    p('end', tostring(self))
+    p('end', tostring(self))
+    p('end', tostring(self))
+    p('end', tostring(self))
+    p('end', tostring(self))
+    p('end', tostring(self))
+    p('end', tostring(self))
+    p('end', tostring(self))
+    p('end', tostring(self))
+    p('end', tostring(self))
     self:emit('end')
+    self:done()
   end)
 
   self._handle:on('data', function(data)
@@ -165,6 +176,18 @@ function Socket:_initEmitters()
     end
     self:emit('error', err)
   end)
+end
+
+function Socket:done()
+  self.writable = false
+
+  local shutdownReq = self:shutdown(function()
+    p('shutdown complete')
+    self:destroy()
+  end)
+  if shutdownReq ~= nil then
+    self:destroy()
+  end
 end
 
 function Socket:connect(...)
@@ -230,20 +253,19 @@ function Socket:connect(...)
   return self
 end
 
-function Socket:_destroy(exception)
+function Socket:destroy(exception)
   if self.destroyed == true then
     return
   end
+
   timer.unenroll(self)
   self.readable = false
   self.writable = false
 
   self.destroyed = true
-end
 
-
-function Socket:destroy(exception)
-  p('socket destroy')
+  p('socket destroy', tostring(self))
+  p(self:address())
   if self._handle then
     self._handle:close()
     self._handle = nil
@@ -254,7 +276,6 @@ function Socket:destroy(exception)
     end
     self:emit('close')
   end)
-  self:_destroy()
 end
 
 function Socket:initialize(handle)

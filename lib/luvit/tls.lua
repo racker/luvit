@@ -226,10 +226,12 @@ function CryptoStream:done(d)
     self:write(d)
   end
 
+  table.insert(self._pending, END_OF_FILE)
+  table.insert(self._pendingCallbacks, nil)
+
   self.writable = false
 
   self.pair:cycle()
-  p(self)
 end
 
 function CryptoStream:getPeerCertificate()
@@ -255,12 +257,27 @@ function CryptoStream:_done()
   dbg('_done')
   self._doneFlag = true
 
+  p(self)
+  p(self.pair.cleartext._doneFlag)
+  p(self.pair.encrypted._doneFlag)
   if self.pair.cleartext._doneFlag == true and
      self.pair.encrypted._doneFlag == true and
      self.pair._doneFlag == false then
+     p('we made it')
+     p('we made it')
+     p('we made it')
+     p('we made it')
+     p('we made it')
+     p('we made it')
+     p('we made it')
+     p('we made it')
+     p('we made it')
+     p('we made it')
+     p('we made it')
     if self.pair._secureEstablished == false then
       self.pair:err()
     else
+      p('destroying pair')
       self.pair:destroy()
     end
   end
@@ -269,6 +286,7 @@ end
 function CryptoStream:_push()
   dbg('_push')
   if self._type == 'encryptedstream' and self.writable == false then
+    dbg('_push exited early')
     return
   end
 
@@ -319,20 +337,28 @@ function CryptoStream:_pull()
     local tmp = table.remove(self._pending)
     local callback = table.remove(self._pendingCallbacks)
 
-    if #tmp == 0 then
-      this.pair.encrypted._destroyAfterPush = true
+    if tmp == END_OF_FILE then
+      p('Got END OF FILE')
+      p('Got END OF FILE')
+      p('Got END OF FILE')
+      p('Got END OF FILE')
+      p('Got END OF FILE')
+      p('Got END OF FILE')
 
       if (self == self.pair.encrypted) then
-        dbg('end encrypted ' + self.pair.fd)
+        dbg('end encrypted ' .. tostring(self.pair.fd))
+        self.pair.cleartext._destroyAfterPush = true
       else
         assert(self == self.pair.cleartext)
         debug('end cleartext')
+        self.pair.encrypted._destroyAfterPush = true
 
-        this.pair.ssl:shutdown()
-
-        this.pair:cycle()
-        this:_done()
+        self.pair.ssl:shutdown()
       end
+
+      self.pair:cycle()
+      self:_done()
+      return
     end
 
     if #tmp ~= 0 then
@@ -490,6 +516,7 @@ function SecurePair:initialize(credentials, isServer, requestCert, rejectUnautho
 
   dbg('SecurePair:initialize')
   self._secureEstablished = false
+  self._doneFlag = false
   self._isServer = isServer
   self._rejectUnauthorized = rejectUnauthorized
 
@@ -544,6 +571,7 @@ end
 
 function SecurePair:cycle(depth)
   dbg('cycle')
+  p(self)
 
   if self._doneFlag == true then
     return
@@ -612,7 +640,7 @@ function SecurePair:destroy()
   self.cleartext.writable = false
   self.cleartext.readable = false
 
-  timer.setTimeout(0, function()
+  process.nextTick(function()
     self.cleartext:emit('end')
     self.encrypted:emit('close')
     self.cleartext:emit('close')
