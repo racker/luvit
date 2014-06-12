@@ -39,6 +39,8 @@ local function partialRealpath(filepath)
   return path.normalize(filepath)
 end
 
+package.loading = {}
+
 local function myloadfile(filepath)
   if not fs.existsSync(filepath) then return end
 
@@ -61,7 +63,13 @@ local function myloadfile(filepath)
     __filename = filepath,
     __dirname = dirname,
     require = function (filepath)
-      return realRequire(filepath, dirname)
+      if package.loading[filepath] then
+        return
+      end
+      package.loading[filepath] = true
+      local module = realRequire(filepath, dirname)
+      package.loading[filepath] = nil
+      return module
     end,
   }, global_meta))
   local module = fn()
