@@ -59,22 +59,25 @@ local function myloadfile(filepath)
   assert(fn, err)
   local dirname = path.dirname(filepath)
   local realRequire = require
-  setfenv(fn, setmetatable({
-    __filename = filepath,
-    __dirname = dirname,
-    require = function (filepath)
-      if package.loading[filepath] then
-        return
-      end
-      package.loading[filepath] = true
-      local module = realRequire(filepath, dirname)
-      package.loading[filepath] = nil
-      return module
-    end,
-  }, global_meta))
-  local module = fn()
-  package.loaded[filepath] = module
-  return function() return module end
+  local exports = {}
+  exports.__filename = filepath
+  exports.__dirname = dirname
+  exports.exports = {}
+  exports.require = function(filepath)
+    if package.loading[filepath] then
+      return package.loading[filepath]
+    end
+    package.loading[filepath] = exports
+    local m = realRequire(filepath, dirname)
+    package.loading[filepath] = nil
+    return m
+  end
+  local fn = setfenv(fn, setmetatable(exports, global_meta))
+  package.loading[filepath] = exports.exports
+  fn()
+  package.loading[filepath] = nil
+  package.loaded[filepath] = exports.exports
+  return function() return exports.exports end
 end
 module.myloadfile = myloadfile
 
