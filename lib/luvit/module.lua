@@ -62,22 +62,31 @@ local function myloadfile(filepath)
   local exports = {}
   exports.__filename = filepath
   exports.__dirname = dirname
-  exports.exports = {}
+  exports.exports = package.loading[filepath] or {}
   exports.require = function(filepath)
-    if package.loading[filepath] then
-      return package.loading[filepath]
+    function exists(fn)
+      if pcall(function () fs.statSync(fn) end) then
+        return fn
+      end
     end
-    package.loading[filepath] = exports
-    local m = realRequire(filepath, dirname)
-    package.loading[filepath] = nil
+
+    local stem = path.normalize(path.join(dirname, filepath))
+    local realName = exists(stem) or exists(stem .. '.lua') or exists(stem .. '.luvit') or exists(stem .. 'init.lua') or exists(stem .. 'init.luvit')
+
+    if package.loading[realName] then
+      return package.loading[realName]
+    end
+
+    local m = realRequire(filepath, dirname) or package.loading[realName]
+    package.loading[realName] = nil
     return m
   end
   local fn = setfenv(fn, setmetatable(exports, global_meta))
   package.loading[filepath] = exports.exports
-  fn()
+  local module = fn() or package.loading[filepath]
+  package.loaded[filepath] = module
   package.loading[filepath] = nil
-  package.loaded[filepath] = exports.exports
-  return function() return exports.exports end
+  return function() return package.loaded[filepath] end
 end
 module.myloadfile = myloadfile
 
