@@ -64,7 +64,7 @@ local function myloadfile(filepath)
   exports.__dirname = dirname
   exports.exports = package.loading[filepath] or {}
   exports.require = function(filepath)
-    function exists(fn)
+    local function exists(fn)
       if pcall(function () fs.statSync(fn) end) then
         return fn
       end
