@@ -73,6 +73,10 @@ local function myloadfile(filepath)
     local stem = path.normalize(path.join(dirname, filepath))
     local realName = exists(stem) or exists(stem .. '.lua') or exists(stem .. '.luvit') or exists(stem .. 'init.lua') or exists(stem .. 'init.luvit')
 
+    if not realName then
+      return realRequire(filepath)
+    end
+
     if package.loading[realName] then
       return package.loading[realName]
     end
