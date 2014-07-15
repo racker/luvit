@@ -18,6 +18,8 @@ limitations under the License.
 
 local table = require('table')
 
+local jit = require('jit')
+
 local utils = {}
 
 local colors = {
