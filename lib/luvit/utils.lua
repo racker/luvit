@@ -179,7 +179,7 @@ function utils.dump(o, depth, no_colorize, seen_tables)
       end
       local tmpStr = utils.dump(v, depth + 1, no_colorize, seen_tables)
       if #tmpStr > 0 then
-        lines[i] = table.concat(s, tmpStr)
+        lines[i] = table.concat({s, tmpStr})
         estimated = estimated + #lines[i]
         i = i + 1
       end
