@@ -18,8 +18,6 @@ limitations under the License.
 
 local table = require('table')
 
-local jit = require('jit')
-
 local utils = {}
 
 local colors = {
@@ -90,8 +88,6 @@ end
 function utils.dump(o, depth, no_colorize, seen_tables)
   local colorize_func
   local _escapes
-
-  jit.off(true)
 
   if not seen_tables then
     seen_tables = {}
@@ -181,10 +177,12 @@ function utils.dump(o, depth, no_colorize, seen_tables)
           s = '[' .. utils.dump(k, 100, no_colorize, seen_tables) .. '] = '
         end
       end
-      s = s .. utils.dump(v, depth + 1, no_colorize, seen_tables)
-      lines[i] = s
-      estimated = estimated + #s
-      i = i + 1
+      local tmpStr = utils.dump(v, depth + 1, no_colorize, seen_tables)
+      if #tmpStr > 0 then
+        lines[i] = table.concat(s, tmpStr)
+        estimated = estimated + #lines[i]
+        i = i + 1
+      end
     end
     if estimated > 200 then
       local s = "{\n  " .. indent
