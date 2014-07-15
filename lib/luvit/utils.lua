@@ -89,6 +89,8 @@ function utils.dump(o, depth, no_colorize, seen_tables)
   local colorize_func
   local _escapes
 
+  jit.off(true)
+
   if not seen_tables then
     seen_tables = {}
   end
