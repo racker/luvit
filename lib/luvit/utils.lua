@@ -137,7 +137,7 @@ function utils.dump(o, depth, no_colorize, seen_tables)
   if t == 'cdata' then
     return colorize_func("Bmagenta", tostring(o))
   end
-  if t == 'table' then
+  if t == 'table' and tostring(o) then
     if seenTable(o) then
       return ''
     end
